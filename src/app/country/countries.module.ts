@@ -1,9 +1,10 @@
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
 
 // componentes
-import { SelectorPageComponent } from './index';
 import { CountriesRoutingModule } from './countries-routing.module';
+import { ReactiveFormsModule } from '@angular/forms';
+import { SelectorPageComponent } from './index';
 
 @NgModule({
   declarations: [
@@ -11,7 +12,8 @@ import { CountriesRoutingModule } from './countries-routing.module';
   ],
   imports: [
     CommonModule,
-    CountriesRoutingModule
+    CountriesRoutingModule,
+    ReactiveFormsModule
   ]
 })
 export class CountriesModule { }

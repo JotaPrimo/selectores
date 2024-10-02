@@ -1,3 +1,20 @@
+<h1 class="mt-5">Selector aninados</h1>
+<hr>
+
+<form [formGroup]="myForm" (submit)="handleSubmit()">
+  <div class="col">
+    <label for="continente">Continente</label>
+    <select formControlName="region" class="form-control" name="continente" id="continente">
+      <option value="">--Selecione um continente</option>
+    </select>
+  </div>
+</form>
+
+<h3>Form</h3>
+<code>
+  {{ myForm.value | json }}
+</code>
+
 <p>
-  selector-page works!
+  is form valid: {{ myForm.valid }}
 </p>
