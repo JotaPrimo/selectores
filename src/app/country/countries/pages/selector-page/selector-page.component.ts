@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CountriesService } from '../../../services/countries.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Country, Region } from '../../../interfaces/country.interfaces';
+import { switchMap } from 'rxjs';
 
 @Component({
   selector: 'countries-selector-page',
@@ -43,9 +44,16 @@ export class SelectorPageComponent implements OnInit {
     // nesse ponto o construtor já foi criado e as propriedades tmbm
     // essa logica me permite acompanhar as alterações do form
     this.myForm.get('region')!.valueChanges
+    .pipe(
+      // o switchMap faz subscrib imediatamente quando o é disparado um novo observable
+      // é util quando queremos garantir que apenas um observable seja exetuado
+      // como no caso da busca, todo novo valor enviado executaria um novo observable
+      // o problema é que pode ser executado um observable antes do anterior ser executado
+      // esse é o problema que o switchMap resolve
+      switchMap(region => this.countriesService.getCountriesByRegion(region))
+    )
     .subscribe(region => {
       console.log( {region} );
-      this.countriesService.getCountriesByRegion(region)
     })
   }
 

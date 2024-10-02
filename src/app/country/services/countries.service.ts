@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Country, Region, SmallCountry } from '../interfaces/country.interfaces';
+import { Observable, of, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 
 // esse root indica que a mesma instancia estará a disposição
@@ -9,6 +11,8 @@ import { Country, Region, SmallCountry } from '../interfaces/country.interfaces'
 })
 export class CountriesService {
 
+  readonly URL_COUNTRY_SERVICE: string = 'https://restcountries.com/v3.1';
+
   private _regions: Region[] = [
     Region.Africa,
     Region.Americas,
@@ -17,7 +21,9 @@ export class CountriesService {
     Region.Oceania
   ];
 
-constructor() { }
+constructor(
+  private httpCliente: HttpClient
+) { }
 
 // o spread rompe as reações que existem com as regioes
 // significa que se for alterado esse valor, o array original está protegido
@@ -26,9 +32,20 @@ get regions() {
   return [...this._regions];
 }
 
-getCountriesByRegion(region: Region): SmallCountry[] {
+getCountriesByRegion(region: Region): Observable<SmallCountry[]> {
 
-  return [];
+  if(!region) {
+    return of([]);
+  }
+
+  const url: string = `${this.URL_COUNTRY_SERVICE}/region/${ region }?fields=cca3,name,borders`;
+
+  return this.httpCliente.get<SmallCountry[]>(url)
+  .pipe(
+    // tap serve para tratar efeitos secundarios
+    tap( response =>  console.log(response))
+  );
+
 }
 
 }
