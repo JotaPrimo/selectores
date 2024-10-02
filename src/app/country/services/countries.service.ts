@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Region } from '../interfaces/country.interfaces';
+import { Country, Region, SmallCountry } from '../interfaces/country.interfaces';
 
 
 // esse root indica que a mesma instancia estará a disposição
@@ -24,6 +24,11 @@ constructor() { }
 // dessa alteração
 get regions() {
   return [...this._regions];
+}
+
+getCountriesByRegion(region: Region): SmallCountry[] {
+
+  return [];
 }
 
 }

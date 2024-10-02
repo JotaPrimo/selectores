@@ -9,6 +9,14 @@
       <option [value]="region" *ngFor="let region of regions">{{ region }}</option>
     </select>
   </div>
+
+  <div class="col mt-2">
+    <label for="country">Countries</label>
+    <select formControlName="country" class="form-control" name="country" id="country">
+      <option value="">--Selecione um continente</option>
+    </select>
+  </div>
+
 </form>
 
 <h3>Form</h3>
