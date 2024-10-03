@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Country, Region, SmallCountry } from '../interfaces/country.interfaces';
-import { Observable, of, tap } from 'rxjs';
+import { Observable, map, of, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
 
@@ -21,31 +21,34 @@ export class CountriesService {
     Region.Oceania
   ];
 
-constructor(
-  private httpCliente: HttpClient
-) { }
+  constructor(
+    private httpCliente: HttpClient
+  ) { }
 
-// o spread rompe as reações que existem com as regioes
-// significa que se for alterado esse valor, o array original está protegido
-// dessa alteração
-get regions() {
-  return [...this._regions];
-}
-
-getCountriesByRegion(region: Region): Observable<SmallCountry[]> {
-
-  if(!region) {
-    return of([]);
+  // o spread rompe as reações que existem com as regioes
+  // significa que se for alterado esse valor, o array original está protegido
+  // dessa alteração
+  get regions() {
+    return [...this._regions];
   }
 
-  const url: string = `${this.URL_COUNTRY_SERVICE}/region/${ region }?fields=cca3,name,borders`;
+  getCountriesByRegion(region: Region): Observable<SmallCountry[]> {
 
-  return this.httpCliente.get<SmallCountry[]>(url)
-  .pipe(
-    // tap serve para tratar efeitos secundarios
-    tap( response =>  console.log(response))
-  );
+    if (!region) {
+      return of([]);
+    }
 
-}
+    const url: string = `${this.URL_COUNTRY_SERVICE}/region/${region}?fields=cca3,name,borders`;
+
+    return this.httpCliente.get<Country[]>(url)
+      .pipe(
+        // map transforma a response, neste caso estou transformando a response a um objeto literal js
+        map(response => response.map(country => ({
+          name: country.name.common,
+          cca3: country.cca3,
+          borders: country.borders ?? []
+        })))
+      );
+  }
 
 }
