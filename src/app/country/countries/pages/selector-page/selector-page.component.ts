@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CountriesService } from '../../../services/countries.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Country, Region, SmallCountry } from '../../../interfaces/country.interfaces';
-import { switchMap } from 'rxjs';
+import { Observable, filter, of, switchMap, tap } from 'rxjs';
 
 @Component({
   selector: 'countries-selector-page',
@@ -11,25 +11,26 @@ import { switchMap } from 'rxjs';
 })
 export class SelectorPageComponent implements OnInit {
 
-  // crie um form com validação para 3 campos region: country, borders, todos devem ser required
+  // crie um form com validação para 3 campos region: country, border, todos devem ser required
   public myForm: FormGroup = this.fb.group({
     region: ['', Validators.required],
     country: ['', Validators.required],
-    borders: ['', Validators.required],
+    border: ['', Validators.required],
   });
 
   public countriesByRegion: SmallCountry[] = [];
+  public borders: SmallCountry[] = [];
 
   constructor(
     private fb: FormBuilder,
-    private countriesService: CountriesService
+    private countriesService: CountriesService,
   ) { }
 
 
   ngOnInit(): void {
-    this.onRegionChange();
+    this.onRegionChanged();
+    this.onCountryChanged();
   }
-
 
   handleSubmit() {
     console.log("submit");
@@ -42,22 +43,28 @@ export class SelectorPageComponent implements OnInit {
     return this.countriesService.regions;
   }
 
-  onRegionChange(): void {
-    // nesse ponto o construtor já foi criado e as propriedades tmbm
-    // essa logica me permite acompanhar as alterações do form
+  onRegionChanged(): void {
     this.myForm.get('region')!.valueChanges
       .pipe(
-        // o switchMap faz subscrib imediatamente quando o é disparado um novo observable
-        // é util quando queremos garantir que apenas um observable seja exetuado
-        // como no caso da busca, todo novo valor enviado executaria um novo observable
-        // o problema é que pode ser executado um observable antes do anterior ser executado
-        // esse é o problema que o switchMap resolve
-        switchMap(region => this.countriesService.getCountriesByRegion(region))
+        tap(() => this.myForm.get('country')!.setValue('')),
+        tap(() => this.borders = []),
+        switchMap((region) => this.countriesService.getCountriesByRegion(region)),
       )
-      .subscribe(res => {
-        console.log(res);
-        this.countriesByRegion = res;
-      })
+      .subscribe(countries => {
+        this.countriesByRegion = countries;
+      });
   }
 
+  onCountryChanged(): void {
+    this.myForm.get('country')!.valueChanges
+      .pipe(
+        tap(() => this.myForm.get('border')!.setValue('')),
+        filter((value: string) => value.length > 0),
+        switchMap((alphaCode) => this.countriesService.getCountryByAlphaCode(alphaCode)),
+        switchMap((country) => this.countriesService.getCountryBordersByCodes(country.borders)),
+      )
+      .subscribe(countries => {
+        this.borders = countries;
+      });
+  }
 }

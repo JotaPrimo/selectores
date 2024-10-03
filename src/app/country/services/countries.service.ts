@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Country, Region, SmallCountry } from '../interfaces/country.interfaces';
-import { Observable, map, of, tap } from 'rxjs';
+import { Observable, combineLatest, map, of, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
 
@@ -32,23 +32,45 @@ export class CountriesService {
     return [...this._regions];
   }
 
-  getCountriesByRegion(region: Region): Observable<SmallCountry[]> {
+  getCountriesByRegion( region: Region ): Observable<SmallCountry[]> {
+    if ( !region ) return of([]);
 
-    if (!region) {
-      return of([]);
-    }
-
-    const url: string = `${this.URL_COUNTRY_SERVICE}/region/${region}?fields=cca3,name,borders`;
+    const url: string = `${ this.URL_COUNTRY_SERVICE }/region/${ region }?fields=cca3,name,borders`;
 
     return this.httpCliente.get<Country[]>(url)
       .pipe(
-        // map transforma a response, neste caso estou transformando a response a um objeto literal js
-        map(response => response.map(country => ({
+        map( countries => countries.map( country => ({
           name: country.name.common,
           cca3: country.cca3,
           borders: country.borders ?? []
-        })))
-      );
+        }))),
+      )
+  }
+  
+  getCountryByAlphaCode( alphaCode: string ): Observable<SmallCountry> {
+    const url = `${ this.URL_COUNTRY_SERVICE }/alpha/${ alphaCode }?fields=cca3,name,borders`;
+    return this.httpCliente.get<Country>( url )
+      .pipe(
+        map( country => ({
+          name: country.name.common,
+          cca3: country.cca3,
+          borders: country.borders ?? [],
+        }))
+      )
+  }
+
+  getCountryBordersByCodes( borders: string[] ): Observable<SmallCountry[]> {
+    if ( !borders || borders.length === 0 ) return of([]);
+
+    const countriesRequests:Observable<SmallCountry>[]  = [];
+
+    borders.forEach( code => {
+      const request = this.getCountryByAlphaCode( code );
+      countriesRequests.push( request );
+    });
+
+
+    return combineLatest( countriesRequests );
   }
 
 }
